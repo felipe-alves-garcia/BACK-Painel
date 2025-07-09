@@ -16,7 +16,14 @@ const unidadeSchema = new Schema({
     }],
     locais:[{
         name:String,
-        fila:[Number],
+        fila:[{
+            senha:Number,
+            tipo:String,
+            atendido:{
+                type:Boolean,
+                default:false,
+            }
+        }],
     }],
 });
 

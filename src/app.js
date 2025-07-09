@@ -119,4 +119,49 @@ app.put("/unidade/local/edit/:unidade", async (req, res) => {
     })
 });
 
+//Editar Usuário
+app.put("/unidade/user/edit/:unidade", async (req, res) => {
+    painel.editUser({
+        lastLogin:req.body.lastLogin,
+        login:req.body.login,
+        tipo:req.body.tipo,
+        password:req.body.password,
+        local:req.body.local,
+    }, req.params.unidade).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    });
+});
+
+//Criar Senha
+app.put("/senha/:unidade", async (req, res) => {
+    painel.addSenha({
+        local:req.body.local,
+        tipo:req.body.tipo
+    }, req.params.unidade).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Listar Fila
+app.get("/fila/senhas/:unidade/:local", async (req, res) => {
+    painel.querySenhas(req.params.unidade, req.params.local).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Chamar Senha
+app.put("/fila/senha/chamar/:unidade/:local", async (req, res) => {
+    painel.chamarSenha(req.params.unidade, req.params.local).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    });
+});
+
 module.exports = app;

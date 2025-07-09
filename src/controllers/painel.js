@@ -75,6 +75,8 @@ async function queryUnidades (){
 async function queryLocais (unidadeID){
     try{
         let unidade = await unidades.findById(unidadeID).exec();
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]}
+
         let locais = unidade.locais;
         return {
             status:true,
@@ -90,6 +92,8 @@ async function queryLocais (unidadeID){
 async function queryUsers (unidadeID){
     try{
         let unidade = await unidades.findById(unidadeID).exec();
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]}
+
         let users = unidade.users;
         return {
             status:true,
@@ -122,31 +126,139 @@ async function editUnidade (unidade, unidadeID){
 
 async function editLocal (local, unidadeID){
     try{
-        await unidades.updateOne({
-            _id:unidadeID,
-            "users.name":local.lastName
-        }, {
-            $set:{
-                "local.$.name":local.name,
-            }
-        })
-        return {status:true, msg:["Local alterado com sucesso"]};
+        const unidade = await unidades.findById(unidadeID).exec();
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]}
+
+        const queryLocal = unidade.locais.find(l => l.name == local.lastName);
+        if (local) {
+            queryLocal.name = local.name
+
+            unidade.users.forEach((u) => {
+                if(u.local == local.lastName)
+                    u.local = local.name;
+            })
+
+            await unidade.save();
+            return {status:true, msg:["Local alterado com sucesso"]};
+        }
+        return {status:false, msg:["Local não encontrado"]};
     } catch (error){
         console.log("Erro --> "+error);
         return {status:true, msg:["Erro ao alterar local", error]};
     }
 }
-/*
-const unidade = await Unidade.findById(unidadeID);
 
-const local = unidade.locais.find(loc => loc.name === "Sala 1");
-if (local) {
-    local.name = "Sala Principal";
-    local.fila = [1, 2, 3, 4];
+async function editUser (user, unidadeID){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]}
+
+        const queryUser = unidade.users.find(u => u.login == user.lastLogin);
+        if (user){
+            queryUser.login = user.login;
+            queryUser.tipo = user.tipo;
+            queryUser.password = user.password;
+            queryUser.local = user.local;
+            await unidade.save();
+            return {status:true, msg:["Usuário alterado com sucesso"]};
+        }
+        return {status:false, msg:["Usuário não encontrado"]};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:true, msg:["Erro ao alterar o usuário", error]};
+    }
 }
 
-await unidade.save();
-*/ 
+//Senhas
+
+async function addSenha (local, unidadeID){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]} 
+
+        const queryLocal = unidade.locais.find(l => l.name == local.local);
+        if(! queryLocal) return {status:false, msg:["Local não encontrado"]}
+
+        let newSenha = {};
+        if (queryLocal.fila.length < 1){
+            newSenha.senha = 1;
+            newSenha.tipo = local.tipo;
+        } else {
+            newSenha.senha = queryLocal.fila[queryLocal.fila.length - 1].senha + 1;
+            newSenha.tipo = local.tipo;
+        }
+
+        queryLocal.fila.push(newSenha)
+        await unidade.save();
+        return {status:true, msg:["Senha criada com sucesso"]};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao criar senha"], error};
+    }
+}
+
+//Atendimento
+
+async function querySenhas (unidadeID, localName){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if (! unidade) return {status:false, msg:["Unidade não encontrada"], data:[]};
+
+        const local = unidade.locais.find(l => l.name == localName);
+        if (! local) return {status:false, msg:["Local não encontrado"], data:[]};
+
+        let senhas = [];
+        let i = 0;
+        local.fila.forEach((s) => {
+            if (s.atendido == false){
+                senhas[i] = s;
+                i++;
+            }
+        })
+
+        return {status:true, msg:["Fila listada com sucesso"], data:senhas};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao buscar fila"], data:[]};
+    }
+}
+
+async function chamarSenha (unidadeID, localName){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if (! unidade) return {status:false, msg:["Erro ao buscar unidade"]};
+
+        const local = unidade.locais.find(l => l.name == localName);
+        if (! local) return {status:false, msg:["Erro ao buscar local"]};
+
+        let next = false;
+        for (s of local.fila){
+            if(s.tipo == "prioridade" && s.atendido == false){
+                s.atendido = true;
+                next = true;
+                break;
+            }
+        }
+        if (! next){
+            for(s of local.fila){
+                if(s.tipo == "normal" && s.atendido == false){
+                    s.atendido = true;
+                    next = true;
+                    break;
+                }     
+            }
+        }
+        
+        if(! next) return {status:false, msg:["Fila vazia"]}
+
+        await unidade.save();
+        return {status:true, msg:["Senha chamada com sucesso"]};
+
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao chama senha", error]};
+    }
+}
 
 //-----
 
@@ -159,4 +271,8 @@ module.exports = {
     queryUsers,
     editUnidade,
     editLocal,
+    editUser,
+    addSenha,
+    querySenhas,
+    chamarSenha,
 }
