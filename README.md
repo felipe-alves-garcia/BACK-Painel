@@ -6,5 +6,5 @@
 
 09/07 --> Finalização das rotas de Edição (unidade, locais e usuário), criação das rotas de senha (addSenha) e criação das rotas de atendimento (pesquisa de senhas e chamamento de senhas). Criação e testes de rota no Postman.
 
-10/07 --> 
+10/07 --> Criação das rotas de deletar (unidade, usuário, local, filas de senha), criação da rota de atender senha, criação da rota de listar ultimas senhas e ajuste na estrutura do DB e na rota de chamar senha com objetivo de ter uma array de ultimas senhas. Criação e testes de rota no Postman.
 

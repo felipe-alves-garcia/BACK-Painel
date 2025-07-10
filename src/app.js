@@ -134,12 +134,57 @@ app.put("/unidade/user/edit/:unidade", async (req, res) => {
     });
 });
 
+//Deletar Unidade
+app.delete("/unidade/del/:unidade", async (req, res) => {
+    painel.delUnidade(req.params.unidade).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    });
+});
+
+//Deletar Usuário
+app.delete("/unidade/user/del/:unidade/:user", async (req, res) => {
+    painel.delUser(
+        req.params.unidade,
+        req.params.user
+    ).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Deletar Local
+app.delete("/unidade/local/del/:unidade/:local", async (req, res) => {
+    painel.delLocal(
+        req.params.unidade,
+        req.params.local
+    ).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
 //Criar Senha
-app.put("/senha/:unidade", async (req, res) => {
+app.put("/fila/senha/add/:unidade", async (req, res) => {
     painel.addSenha({
         local:req.body.local,
         tipo:req.body.tipo
     }, req.params.unidade).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Deletar Senhas
+app.delete("/fila/senhas/del/:unidade/:local", async (req, res) => {
+    painel.delSenhas(
+        req.params.unidade,
+        req.params.local
+    ).then((resp) => {
         res.send(resp);
     }).catch((error) => {
         res.send(error);
@@ -162,6 +207,24 @@ app.put("/fila/senha/chamar/:unidade/:local", async (req, res) => {
     }).catch((error) => {
         res.send(error);
     });
+});
+
+//Atender Senha
+app.put("/fila/senha/atender/:unidade/:local", async (req, res) => {
+    painel.atenderSenha(req.params.unidade, req.params.local).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Pesquisar Ultimas Senhas
+app.get("/fila/senhas/last/:unidade/:local", async (req, res) => {
+    painel.queryLastSenhas(req.params.unidade, req.params.local).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        req.send(error);
+    })
 });
 
 module.exports = app;

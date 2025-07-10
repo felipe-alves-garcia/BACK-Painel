@@ -19,11 +19,27 @@ const unidadeSchema = new Schema({
         fila:[{
             senha:Number,
             tipo:String,
+            chamado:{
+                type:Boolean,
+                default:false,
+            },
             atendido:{
                 type:Boolean,
                 default:false,
             }
         }],
+        lastFila:[{
+            senha:Number,
+            tipo:String,
+            chamado:{
+                type:Boolean,
+                default:false,
+            },
+            atendido:{
+                type:Boolean,
+                default:false,
+            }
+        }]
     }],
 });
 

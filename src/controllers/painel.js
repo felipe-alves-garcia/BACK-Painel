@@ -169,6 +169,45 @@ async function editUser (user, unidadeID){
     }
 }
 
+//Del
+
+async function delUnidade (unidadeID){
+    try {
+        await unidades.deleteOne({_id:unidadeID});
+        return {status:true, msg:["Unidade deletada com sucesso"]};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao deletar unidade", error]};
+    }
+}
+
+async function delUser (unidadeID, userName){
+    try{
+        await unidades.updateOne(
+            {_id:unidadeID},
+            {$pull:{users:{login:userName}}}
+        );
+        return {status:true, msg:["Usuário deletado com sucesso"]}
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao deletar usuário", error]};
+    }
+}
+
+async function delLocal (unidadeID, localName) {
+    try{
+        await unidades.updateOne(
+            {_id:unidadeID},
+            {$pull:{locais:{name:localName}}}
+        );
+        return {status:true, msg:["Local deletado com sucesso"]};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao deletar local", error]};
+    }
+    
+}
+
 //Senhas
 
 async function addSenha (local, unidadeID){
@@ -193,7 +232,20 @@ async function addSenha (local, unidadeID){
         return {status:true, msg:["Senha criada com sucesso"]};
     } catch (error){
         console.log("Erro --> "+error);
-        return {status:false, msg:["Erro ao criar senha"], error};
+        return {status:false, msg:["Erro ao criar senha", error]};
+    }
+}
+
+async function delSenhas (unidadeID, localName){
+    try{
+        await unidades.updateOne(
+            {_id:unidadeID, "locais.name":localName},
+            {$set:{"locais.$.fila": [], "locais.$.lastFila": []}}
+        )
+        return {status:true, msg:["Filas resetadas"]};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao deletar senhas", error]};
     }
 }
 
@@ -210,7 +262,7 @@ async function querySenhas (unidadeID, localName){
         let senhas = [];
         let i = 0;
         local.fila.forEach((s) => {
-            if (s.atendido == false){
+            if (s.chamado == false){
                 senhas[i] = s;
                 i++;
             }
@@ -233,16 +285,16 @@ async function chamarSenha (unidadeID, localName){
 
         let next = false;
         for (s of local.fila){
-            if(s.tipo == "prioridade" && s.atendido == false){
-                s.atendido = true;
+            if(s.tipo == "prioridade" && s.chamado == false){
+                s.chamado = true;
                 next = true;
                 break;
             }
         }
         if (! next){
             for(s of local.fila){
-                if(s.tipo == "normal" && s.atendido == false){
-                    s.atendido = true;
+                if(s.tipo == "normal" && s.chamado == false){
+                    s.chamado = true;
                     next = true;
                     break;
                 }     
@@ -260,6 +312,48 @@ async function chamarSenha (unidadeID, localName){
     }
 }
 
+async function atenderSenha (unidadeID, localName){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if (! unidade) return {status:false, msg:["Unidade não encontrada"]};
+
+        const local = unidade.locais.find(l => l.name == localName);
+        if (! local) return {status:false, msg:["Local não encontrado"]};
+
+        for(s of local.fila){
+            if (s.chamado && ! s.atendido){
+                s.atendido = true;
+                local.lastFila.push(s);
+                break;
+            }
+        }
+
+        await unidade.save();
+        return {status:true, msg:["Senha Chamada com sucesso"]};
+
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro oa iniciar atendimento", error]};
+    }
+}
+
+//Painel
+
+async function queryLastSenhas (unidadeID, localName){
+    try{
+        const unidade = await unidades.findById(unidadeID).exec();
+        if (! unidade) return {status:false, msg:["Unidade não encontrada"], data:[]};
+
+        const local = unidade.locais.find(l => l.name == localName);
+        if (! local) return {status:false, msg:["Local não encontrado"], data:[]};
+
+        return {status:true, msg:["Ultimas senhas listada com sucesso"], data:local.lastFila};
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao buscar ultimas senhas"], data:[]};
+    }
+}
+
 //-----
 
 module.exports = {
@@ -272,7 +366,13 @@ module.exports = {
     editUnidade,
     editLocal,
     editUser,
+    delUnidade,
+    delUser,
+    delLocal,
     addSenha,
+    delSenhas,
     querySenhas,
     chamarSenha,
+    atenderSenha,
+    queryLastSenhas,
 }
