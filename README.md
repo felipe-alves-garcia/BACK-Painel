@@ -8,3 +8,4 @@
 
 10/07 --> Criação das rotas de deletar (unidade, usuário, local, filas de senha), criação da rota de atender senha, criação da rota de listar ultimas senhas e ajuste na estrutura do DB e na rota de chamar senha com objetivo de ter uma array de ultimas senhas. Criação e testes de rota no Postman.
 
+11/07 --> criação da rota de login e criação das verificações (token e tipo de usuário) para todas as rotas, com exceção das rotas de pesquisa. Criação e testes de rota no Postman. Finalização do Backend.
