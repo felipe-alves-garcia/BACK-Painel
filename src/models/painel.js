@@ -3,6 +3,16 @@ const { model, Schema } = mongoose;
 
 //-----
 
+const adminSchema = new Schema({
+    login:String,
+    password:String,
+    tipo:String,
+})
+
+const admin = model("admin", adminSchema);
+
+//
+
 const unidadeSchema = new Schema({
     name:{
         type:String,
@@ -47,5 +57,5 @@ const unidades = model("unidades", unidadeSchema);
 
 //-----
 
-module.exports = { unidades };
+module.exports = { admin, unidades };
 

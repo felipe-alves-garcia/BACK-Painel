@@ -3,24 +3,42 @@ const painel = require("../controllers/painel");
 
 async function setToken (unidadeID, login, password){
     try{
-        const users = await painel.queryUsers(unidadeID);
-
-        let user = {
-            name:undefined,
-            local:undefined,
-            tipo:undefined,
-            token:undefined,
-        };
-        for(u of users.data){
-            if (u.login == login && u.password == password){
-                user.name = u.login;
-                user.tipo = u.tipo;
-                user.local = u.local;
-                break;
+        let user = {};
+        if (unidadeID == "admin"){
+            const admin = await painel.queryAdmin();
+            user = {
+                name:undefined,
+                tipo:undefined,
+                token:undefined,
             }
+            if (admin.data[0].login == login && admin.data[0].password == password){
+                user = {
+                    name:admin.data[0].login,
+                    tipo:admin.data[0].tipo,
+                };
+            }   
+            if (user.name == undefined) return {status:false, msg:["Usuário não encontrado"]};
         }
+        else{
+            const users = await painel.queryUsers(unidadeID);
 
-        if (user.name == undefined) return {status:false, msg:["Usuário não encontrado"]};
+            user = {
+                name:undefined,
+                local:undefined,
+                tipo:undefined,
+                token:undefined,
+            };
+            for(u of users.data){
+                if (u.login == login && u.password == password){
+                    user.name = u.login;
+                    user.tipo = u.tipo;
+                    user.local = u.local;
+                    break;
+                }
+            }
+
+            if (user.name == undefined) return {status:false, msg:["Usuário não encontrado"]};
+        }
 
         user.token = jwt.sign(
             {password},

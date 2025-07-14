@@ -1,5 +1,5 @@
 const db = require("../models/painel");
-const { unidades } = db;
+const { admin, unidades } = db;
 
 //Add
 
@@ -86,6 +86,21 @@ async function queryLocais (unidadeID){
     }catch(error){
         console.log("Erro --> "+error);
         return {status:false, msg:["Erro ao listar locais", error], data:[]}
+    }
+}
+
+async function queryAdmin (){
+    try{
+        const userAdmin = await admin.find().exec();
+        return {
+            status:true,
+            msg:["Admin encontrado"],
+            data:userAdmin,
+        }
+
+    } catch(error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao buscar admin", error], data:[]}
     }
 }
 
@@ -363,6 +378,7 @@ module.exports = {
     queryUnidades,
     queryLocais,
     queryUsers,
+    queryAdmin,
     editUnidade,
     editLocal,
     editUser,
