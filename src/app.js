@@ -133,6 +133,43 @@ app.get("/unidade/users/:unidade", async (req, res) => {
     });
 });
 
+
+//Pesquisar Unidade
+app.get("/unidade/:unidade", async (req, res) => {
+    const verify = await token.verifyToken(req.headers.token, req.headers.login);
+    if(! verify.status) return res.send({status:false, msg:["Usuário Inválido"]});
+
+    painel.queryUnidade(req.params.unidade).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Pesquisar Local
+app.get("/unidade/local/:unidade/:local", async (req, res) => {
+    const verify = await token.verifyToken(req.headers.token, req.headers.login);
+    if(! verify.status) return res.send({status:false, msg:["Usuário Inválido"]});
+
+    painel.queryLocal(req.params.unidade, req.params.local).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    })
+});
+
+//Pesquisar Usuário
+app.get("/unidade/user/:unidade/:user", async (req, res) => {
+    const verify = await token.verifyToken(req.headers.token, req.headers.login);
+    if(! verify.status) return res.send({status:false, msg:["Usuário Inválido"]});
+
+    painel.queryUser(req.params.unidade, req.params.user).then((resp) => {
+        res.send(resp);
+    }).catch((error) => {
+        res.send(error);
+    });
+});
+
 //Editar Unidade
 app.put("/unidade/edit/:unidade", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);

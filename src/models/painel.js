@@ -40,6 +40,7 @@ const unidadeSchema = new Schema({
         }],
         lastFila:[{
             senha:Number,
+            divison:String,
             tipo:String,
             chamado:{
                 type:Boolean,

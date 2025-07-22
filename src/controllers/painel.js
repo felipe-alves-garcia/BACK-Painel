@@ -60,11 +60,19 @@ async function addUser (user, unidadeID){
 
 async function queryUnidades (){
     try{
+        const allUnidadesReturn = [];
         let allUnidades = await unidades.find().exec();
+        allUnidades.forEach((item, index) => {
+            allUnidadesReturn[index] = {}
+            allUnidadesReturn[index]._id = item._id;
+            allUnidadesReturn[index].name = item.name;
+            allUnidadesReturn[index].users = item.users.length;
+            allUnidadesReturn[index].locais = item.locais.length;
+        })
         return {
             status:true,
             msg:["Unidades listadas com sucesso"],
-            data:allUnidades,
+            data:allUnidadesReturn,
         }
     } catch (error){
         console.log("Erro --> "+error);
@@ -118,6 +126,58 @@ async function queryUsers (unidadeID){
     } catch (error){
         console.log("Erro --> "+error);
         return {status:false, msg:["Erro ao listas usuários", error], data:[]}
+    }
+}
+
+async function queryUnidade (unidadeID){
+    try{
+        let unidade = await unidades.findById(unidadeID).exec();
+        return {
+            status:true,
+            msg:["Unidade listada com sucesso"],
+            data:unidade,
+        }
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao listar unidade", error], data:[]};
+    }
+}
+
+async function queryLocal (unidadeID, localName){
+    try{
+        let local = await unidades.findOne({
+            _id:unidadeID,
+            "locais.name":localName,
+        },{
+            "locais.$":1
+        })
+        return {
+            status:true,
+            msg:["Local listado com sucesso"],
+            data:local,
+        }
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao listar local", error], data:[]};
+    }
+}
+
+async function queryUser (unidadeID, userName){
+    try{
+        let user = await unidades.findOne({
+            _id:unidadeID,
+            "users.login":userName,
+        },{
+            "users.$":1
+        })
+        return {
+            status:true,
+            msg:["User listado com sucesso"],
+            data:user,
+        }
+    } catch (error){
+        console.log("Erro --> "+error);
+        return {status:false, msg:["Erro ao listar user", error], data:[]};
     }
 }
 
@@ -228,26 +288,36 @@ async function delLocal (unidadeID, localName) {
 async function addSenha (local, unidadeID){
     try{
         const unidade = await unidades.findById(unidadeID).exec();
-        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"]} 
+        if(! unidade) return {status:false, msg:["Erro ao encontrar unidade"], data:{}} 
 
         const queryLocal = unidade.locais.find(l => l.name == local.local);
-        if(! queryLocal) return {status:false, msg:["Local não encontrado"]}
+        if(! queryLocal) return {status:false, msg:["Local não encontrado"], data:{}}
+
+        let i;
+        let divison = false;
+        for(i=0; i<unidade.locais.length && divison == false;){
+            if(unidade.locais[i].name == local.local)
+                divison = true;
+            i++;
+        }
 
         let newSenha = {};
         if (queryLocal.fila.length < 1){
             newSenha.senha = 1;
+            newSenha.divison = String.fromCharCode(64+i)
             newSenha.tipo = local.tipo;
         } else {
             newSenha.senha = queryLocal.fila[queryLocal.fila.length - 1].senha + 1;
+            newSenha.divison = String.fromCharCode(64+i)
             newSenha.tipo = local.tipo;
         }
 
         queryLocal.fila.push(newSenha)
         await unidade.save();
-        return {status:true, msg:["Senha criada com sucesso"]};
+        return {status:true, msg:["Senha criada com sucesso"], data:{senha:newSenha}};
     } catch (error){
         console.log("Erro --> "+error);
-        return {status:false, msg:["Erro ao criar senha", error]};
+        return {status:false, msg:["Erro ao criar senha", error], data:{}};
     }
 }
 
@@ -379,6 +449,9 @@ module.exports = {
     queryLocais,
     queryUsers,
     queryAdmin,
+    queryUnidade,
+    queryLocal,
+    queryUser,
     editUnidade,
     editLocal,
     editUser,
