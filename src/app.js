@@ -263,7 +263,8 @@ app.delete("/unidade/local/del/:unidade/:local", async (req, res) => {
 //Criar Senha
 app.put("/fila/senha/add/:unidade", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);
-    if(! verify.status || req.headers.user == "atendimento" || req.headers.tipo == "painel") 
+    console.log(req.headers.user, req.headers.token)
+    if(! verify.status || req.headers.user == undefined || req.headers.user == "atendimento" || req.headers.tipo == "painel") 
         return res.send({status:false, msg:["Usuário Inválido"]});
 
     painel.addSenha({
@@ -279,7 +280,7 @@ app.put("/fila/senha/add/:unidade", async (req, res) => {
 //Deletar Senhas
 app.delete("/fila/senhas/del/:unidade/:local", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);
-    if(! verify.status || req.headers.user == "atendimento" || req.headers.tipo == "painel") 
+    if(! verify.status || req.headers.user == undefined || req.headers.user == "atendimento" || req.headers.tipo == "painel") 
         return res.send({status:false, msg:["Usuário Inválido"]});
     
     painel.delSenhas(
@@ -295,7 +296,7 @@ app.delete("/fila/senhas/del/:unidade/:local", async (req, res) => {
 //Listar Fila
 app.get("/fila/senhas/:unidade/:local", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);
-    if(! verify.status || req.headers.user == "triagem" || req.headers.tipo == "painel") 
+    if(! verify.status || req.headers.user == undefined || req.headers.user == "triagem" || req.headers.tipo == "painel") 
         return res.send({status:false, msg:["Usuário Inválido"]});
 
     painel.querySenhas(req.params.unidade, req.params.local).then((resp) => {
@@ -308,7 +309,7 @@ app.get("/fila/senhas/:unidade/:local", async (req, res) => {
 //Chamar Senha
 app.put("/fila/senha/chamar/:unidade/:local", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);
-    if(! verify.status || req.headers.user == "triagem" || req.headers.tipo == "painel") 
+    if(! verify.status || req.headers.user == undefined || req.headers.user == "triagem" || req.headers.tipo == "painel") 
         return res.send({status:false, msg:["Usuário Inválido"]});
 
     painel.chamarSenha(req.params.unidade, req.params.local).then((resp) => {
@@ -321,7 +322,7 @@ app.put("/fila/senha/chamar/:unidade/:local", async (req, res) => {
 //Atender Senha
 app.put("/fila/senha/atender/:unidade/:local", async (req, res) => {
     const verify = await token.verifyToken(req.headers.token, req.headers.login);
-    if(! verify.status || req.headers.user == "triagem" || req.headers.tipo == "painel") 
+    if(! verify.status || req.headers.user == undefined || req.headers.user == "triagem" || req.headers.tipo == "painel") 
         return res.send({status:false, msg:["Usuário Inválido"]});
 
     painel.atenderSenha(req.params.unidade, req.params.local).then((resp) => {
