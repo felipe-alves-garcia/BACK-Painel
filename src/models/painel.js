@@ -28,6 +28,7 @@ const unidadeSchema = new Schema({
         name:String,
         fila:[{
             senha:Number,
+            divison:String,
             tipo:String,
             chamado:{
                 type:Boolean,

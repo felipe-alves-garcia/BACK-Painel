@@ -304,11 +304,13 @@ async function addSenha (local, unidadeID){
         let newSenha = {};
         if (queryLocal.fila.length < 1){
             newSenha.senha = 1;
-            newSenha.divison = String.fromCharCode(64+i)
+            newSenha.divison = "";
+            newSenha.divison += String.fromCharCode(64+i)
             newSenha.tipo = local.tipo;
         } else {
             newSenha.senha = queryLocal.fila[queryLocal.fila.length - 1].senha + 1;
-            newSenha.divison = String.fromCharCode(64+i)
+            newSenha.divison = "";
+            newSenha.divison += String.fromCharCode(64+i)
             newSenha.tipo = local.tipo;
         }
 
@@ -347,7 +349,7 @@ async function querySenhas (unidadeID, localName){
         let senhas = [];
         let i = 0;
         local.fila.forEach((s) => {
-            if (s.chamado == false){
+            if (s.atendido == false){
                 senhas[i] = s;
                 i++;
             }
@@ -363,15 +365,26 @@ async function querySenhas (unidadeID, localName){
 async function chamarSenha (unidadeID, localName){
     try{
         const unidade = await unidades.findById(unidadeID).exec();
-        if (! unidade) return {status:false, msg:["Erro ao buscar unidade"]};
+        if (! unidade) return {status:false, msg:["Erro ao buscar unidade"], data:{}};
 
         const local = unidade.locais.find(l => l.name == localName);
-        if (! local) return {status:false, msg:["Erro ao buscar local"]};
+        if (! local) return {status:false, msg:["Erro ao buscar local"], data:{}};
 
+        let senhaChamada = {};
         let next = false;
+        for (s of local.fila){
+            if (s.chamado == true && s.atendido == false){
+                senhaChamada = s;
+                next = true;
+                break;
+            }
+        }
+        console.log(next)
+        if (next) return {status:false, msg:["Chamada Existente"], data:{senhaChamada}}
         for (s of local.fila){
             if(s.tipo == "prioridade" && s.chamado == false){
                 s.chamado = true;
+                senhaChamada = s;
                 next = true;
                 break;
             }
@@ -380,20 +393,21 @@ async function chamarSenha (unidadeID, localName){
             for(s of local.fila){
                 if(s.tipo == "normal" && s.chamado == false){
                     s.chamado = true;
+                    senhaChamada = s;
                     next = true;
                     break;
                 }     
             }
         }
         
-        if(! next) return {status:false, msg:["Fila vazia"]}
+        if(! next) return {status:false, msg:["Fila vazia"], data:{}}
 
         await unidade.save();
-        return {status:true, msg:["Senha chamada com sucesso"]};
+        return {status:true, msg:["Senha chamada com sucesso"], data:{senhaChamada}};
 
     } catch (error){
         console.log("Erro --> "+error);
-        return {status:false, msg:["Erro ao chama senha", error]};
+        return {status:false, msg:["Erro ao chama senha", error], data:{}};
     }
 }
 
